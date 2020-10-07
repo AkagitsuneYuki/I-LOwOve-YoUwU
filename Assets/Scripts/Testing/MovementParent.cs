@@ -4,24 +4,32 @@ using UnityEngine;
 
 public class MovementParent : MonoBehaviour
 {
-
+    //the sprite, either owo or uwu
     [SerializeField] private Transform child;
 
+    #region Raycast
+    //raycast stuff, used to check for adjacent objects to see where we can move
     public float rayLength;
     private RaycastHit2D rayHit;
     [SerializeField] private LayerMask wallLayerMask;
     [SerializeField] private LayerMask trapLayerMask;
+    [SerializeField] private LayerMask objectsMask;
 
+    private Vector3[] rayDirection = new Vector3[4];
+
+    #endregion
+
+    //tells if we use wasd or arrows as our main controller
     enum MovementType
     {
         Primary,    //owo
         Secondary   //uwu
     }
-
     [SerializeField] private MovementType movementType;
 
+    //a simple struct used to set and get the directions we can move to
     [System.Serializable]
-    public class Directions
+    public struct Directions
     {
         public bool up;
         public bool down;
@@ -30,19 +38,44 @@ public class MovementParent : MonoBehaviour
     }
     public Directions dir;
 
+    //a simple struct that's used to get what types of objects we're adjecent to
+    //this is for when we need to check which directions we can move to
+    [System.Serializable]
+    public struct AdjacentObject
+    {
+        //the types of objects that can be adjacent to us, more types will be added as more objects are made
+        public enum ObjectType
+        {
+            none,
+            wall,
+            player      //use this to prevent the characters from overlapping
+        }
+        public ObjectType up;
+        public ObjectType down;
+        public ObjectType left;
+        public ObjectType right;
+    }
+    public AdjacentObject adjObj;
+
     void Start()
     {
         float x = Mathf.FloorToInt(transform.position.x);
         float y = Mathf.FloorToInt(transform.position.y);
         Vector3 pos = new Vector3(x, y, 0);
         transform.position = pos;
+
+        rayDirection[0] = Vector3.up;
+        rayDirection[1] = Vector3.down;
+        rayDirection[2] = Vector3.left;
+        rayDirection[3] = Vector3.right;
     }
 
 
     void Update()
     {
-        DrawLines();
-        if(child.position.x == transform.position.x)
+        CheckAdjacentObjects();
+        
+        if (child.position.x == transform.position.x)
         {
             if(child.position.y == transform.position.y)
             {
@@ -109,88 +142,133 @@ public class MovementParent : MonoBehaviour
         }
     }
 
-    private void DrawLines()
+
+    private void CheckAdjacentObjects()
     {
-        //hit right
-        if (Physics2D.Raycast(transform.position, transform.right, rayLength, wallLayerMask))
+        Vector3 rd = Vector3.zero;
+        for (int i = 0; i < 4; i++)
         {
-            Debug.DrawLine(transform.position, transform.position + Vector3.right * rayLength, Color.red);
-            rayHit = Physics2D.Raycast(transform.position, Vector2.right, rayLength);
-            dir.right = false;
-        }
-        else
-        {
-            Debug.DrawLine(transform.position, transform.position + Vector3.right * rayLength, Color.blue);
-            dir.right = true;
-            if (Physics2D.Raycast(transform.position, transform.right, rayLength, trapLayerMask)) //detects if there is a red wall at the right
-            {
-                
-            }
-            else
-            {
-                
-            }
-        }
-        //left
-        if (Physics2D.Raycast(transform.position, -transform.right, rayLength, wallLayerMask))
-        {
-            Debug.DrawLine(transform.position, transform.position + Vector3.left * rayLength, Color.red);
-            rayHit = Physics2D.Raycast(transform.position, Vector2.left, rayLength);
-            dir.left = false;
-        }
-        else
-        {
-            Debug.DrawLine(transform.position, transform.position + Vector3.left * rayLength, Color.blue);
-            dir.left = true;
+            rd = rayDirection[i];
 
-            if (Physics2D.Raycast(transform.position, -transform.right, rayLength, trapLayerMask)) //detects if there is a red wall at the left
+            rayHit = Physics2D.Raycast(transform.position, rd, rayLength, objectsMask);
+            if(rayHit.collider != null)
             {
-                
+                GameObject obj = rayHit.collider.gameObject;
+                SetAdjacentObject(i, LayerMask.LayerToName(obj.layer));
             }
             else
             {
-                
+                SetAdjacentObject(i, "");
+                Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.blue);
             }
-        }
-        //up
-        if (Physics2D.Raycast(transform.position, transform.up, rayLength, wallLayerMask))
-        {
-            Debug.DrawLine(transform.position, transform.position + Vector3.up * rayLength, Color.red);
-            rayHit = Physics2D.Raycast(transform.position, Vector2.up, rayLength);
-            dir.up = false;
-        }
-        else
-        {
-            Debug.DrawLine(transform.position, transform.position + Vector3.up * rayLength, Color.blue);
-            dir.up = true;
-            if (Physics2D.Raycast(transform.position, transform.up, rayLength, trapLayerMask)) //detects if there is a red wall at the top
-            {
-                
-            }
-            else
-            {
-                
-            }
-        }
-        //down
-        if (Physics2D.Raycast(transform.position, -transform.up, rayLength, wallLayerMask))
-        {
-            Debug.DrawLine(transform.position, transform.position + Vector3.down * rayLength, Color.red);
-            rayHit = Physics2D.Raycast(transform.position, Vector2.down, rayLength);
-            dir.down = false;
-        }
-        else
-        {
-            Debug.DrawLine(transform.position, transform.position + Vector3.down * rayLength, Color.blue);
-            dir.down = true;
-            if (Physics2D.Raycast(transform.position, -transform.up, rayLength, trapLayerMask)) //detects if there is a red wall at the bottom
-            {
-                
-            }
-            else
-            {
 
+            switch (i)
+            {
+                case (0):
+                    if (dir.up)
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.blue);
+                    }
+                    else
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.red);
+                    }
+                    break;
+                case (1):
+                    if (dir.down)
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.blue);
+                    }
+                    else
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.red);
+                    }
+                    break;
+                case (2):
+                    if (dir.left)
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.blue);
+                    }
+                    else
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.red);
+                    }
+                    break;
+                case (3):
+                    if (dir.right)
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.blue);
+                    }
+                    else
+                    {
+                        Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.red);
+                    }
+                    break;
             }
+
+        }
+    }
+
+    //this could probably be done better
+    private void SetAdjacentObject(int side, string layerName)
+    {
+        switch (side)
+        {
+            default:
+                print("invalid side index " + side);
+                break;
+            case (0):
+                switch (layerName)
+                {
+                    default:
+                        adjObj.up = AdjacentObject.ObjectType.none;
+                        dir.up = true;
+                        break;
+                    case ("Wall"):
+                        adjObj.up = AdjacentObject.ObjectType.wall;
+                        dir.up = false;
+                        break;
+                }
+                break;
+            case (1):
+                switch (layerName)
+                {
+                    default:
+                        adjObj.down = AdjacentObject.ObjectType.none;
+                        dir.down = true;
+                        break;
+                    case ("Wall"):
+                        adjObj.down = AdjacentObject.ObjectType.wall;
+                        dir.down = false;
+                        break;
+                }
+                break;
+            case (2):
+                switch (layerName)
+                {
+                    default:
+                        adjObj.left = AdjacentObject.ObjectType.none;
+                        dir.left = true;
+                        break;
+                    case ("Wall"):
+                        adjObj.left = AdjacentObject.ObjectType.wall;
+                        dir.left = false;
+                        break;
+                }
+                break;
+            case (3):
+                switch (layerName)
+                {
+                    default:
+                        adjObj.right = AdjacentObject.ObjectType.none;
+                        dir.right = true;
+                        break;
+                    case ("Wall"):
+                        adjObj.right = AdjacentObject.ObjectType.wall;
+                        dir.right = false;
+                        break;
+                }
+                break;
         }
     }
 
