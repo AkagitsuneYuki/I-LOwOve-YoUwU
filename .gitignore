@@ -10,6 +10,10 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 
+# Tools that need to be purchased from the asset store
+# or were made by someone else
+/[Aa]ssets/ConsolePro/
+
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
 
