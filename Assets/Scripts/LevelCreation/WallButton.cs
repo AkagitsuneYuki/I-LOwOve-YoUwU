@@ -37,9 +37,11 @@ public class WallButton : MonoBehaviour
         {
             default:
                 GetComponent<SpriteRenderer>().color = Color.white;
+                gameObject.layer = 0;
                 break;
             case (WallType.wall):
                 GetComponent<SpriteRenderer>().color = Color.black;
+                gameObject.layer = GlobalData.wallLayer;
                 break;
         }
     }
