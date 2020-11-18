@@ -1,9 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 public class LevelEditorController : MonoBehaviour
 {
+    public WallButton.WallType[] walls;
 
     public enum CursorMode
     {
@@ -12,20 +15,31 @@ public class LevelEditorController : MonoBehaviour
         Wall,
         Players //for when setting the spawn points
     }
-
     public CursorMode mode;
-
     public SpawnPoint[] spawns;
-
     public bool editMode;
 
-    // Start is called before the first frame update
     void Start()
     {
         editMode = true;
+
+        GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
+
+        walls = new WallButton.WallType[obj.Length];
+
+        for(int i = 0; i < obj.Length; i++)
+        {
+            try
+            {
+                walls[i] = obj[i].GetComponent<WallButton>().wallType;
+            }
+            finally
+            {
+
+            }
+        }
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (editMode)
@@ -140,4 +154,46 @@ public class LevelEditorController : MonoBehaviour
         }
     }
 
+    //saving works
+    public void SaveLevel()
+    {
+        string dest = Application.persistentDataPath + "/test.uwu";
+        FileStream file;
+
+        if (File.Exists(dest))
+        {
+            file = File.OpenWrite(dest);
+        }
+        else
+        {
+            file = File.Create(dest);
+        }
+        BinaryFormatter bf = new BinaryFormatter();
+        LevelData data = new LevelData(walls);
+        bf.Serialize(file, data);
+        file.Close();
+    }
+    //loading is a bit fucked atm
+    public void LoadLevel()
+    {
+        string dest = Application.persistentDataPath + "/test.uwu";
+        FileStream file;
+
+        if (File.Exists(dest))
+        {
+            file = File.OpenRead(dest);
+        }
+        else
+        {
+            Debug.LogError("File not found");
+            return;
+        }
+
+        BinaryFormatter bf = new BinaryFormatter();
+        LevelData data = (LevelData)bf.Deserialize(file);
+        file.Close();
+
+        walls = data.buttons;
+
+    }
 }

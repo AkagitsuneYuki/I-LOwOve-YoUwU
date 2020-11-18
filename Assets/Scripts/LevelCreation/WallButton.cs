@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class WallButton : MonoBehaviour
 {
+    [System.Serializable]
     public enum WallType
     {
         none,
