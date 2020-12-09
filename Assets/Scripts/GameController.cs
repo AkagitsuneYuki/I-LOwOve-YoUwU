@@ -24,4 +24,31 @@ public class GameController : MonoBehaviour
         //GameObject.Instantiate(levelPrefabs[level], Vector3.zero, Quaternion.identity);
     }
 
+    public void ResetLevel()
+    {
+        try
+        {
+            GameObject[] spawns = GameObject.FindGameObjectsWithTag("Edit Spawn");
+            spawns[0].GetComponent<SpawnPoint>().MoveCharacterToMe();
+            spawns[1].GetComponent<SpawnPoint>().MoveCharacterToMe();
+        }
+        finally
+        {
+            Debug.Log("Mike fucked up this one. please nag him on github");
+        }
+
+    }
+
+    public void PlayerDied()
+    {
+        Debug.Log("the player hit something that killed them, reset their positions");
+        StartCoroutine(ResetCoroutine());
+    }
+
+    IEnumerator ResetCoroutine()
+    {
+        yield return new WaitForSeconds(0.01f);
+        ResetLevel();
+    }
+
 }

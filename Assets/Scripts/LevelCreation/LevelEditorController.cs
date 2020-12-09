@@ -13,7 +13,8 @@ public class LevelEditorController : MonoBehaviour
         None,   //don't add or subtract anything
         Erase,
         Wall,
-        Players //for when setting the spawn points
+        Players, //for when setting the spawn points
+        Trap
     }
     public CursorMode mode;
     public SpawnPoint[] spawns;
@@ -64,7 +65,7 @@ public class LevelEditorController : MonoBehaviour
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
                 if (hit.collider != null)
                 {
-                    Debug.Log("Something was clicked!");
+                    //Debug.Log("Something was clicked!");
                     switch (hit.collider.gameObject.tag)
                     {
                         default:
@@ -79,6 +80,10 @@ public class LevelEditorController : MonoBehaviour
                             else if (mode == CursorMode.Erase)
                             {
                                 wall.SetWallType(WallButton.WallType.none);
+                            }
+                            else if(mode == CursorMode.Trap)
+                            {
+                                wall.SetWallType(WallButton.WallType.trap);
                             }
                             break;
                         case ("Edit Spawn"):
@@ -150,6 +155,10 @@ public class LevelEditorController : MonoBehaviour
             else if (Input.GetKeyDown(KeyCode.P))
             {
                 mode = CursorMode.Players;
+            }
+            else if (Input.GetKeyDown(KeyCode.T))
+            {
+                mode = CursorMode.Trap;
             }
         }
     }

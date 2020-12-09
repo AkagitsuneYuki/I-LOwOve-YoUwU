@@ -54,11 +54,13 @@ public class SpawnPoint : MonoBehaviour
 
             transform.position = newPos;
         }
+        transform.position += Vector3.forward;  //lazy way of making the spawns not overlap the players
     }
 
     public void MoveCharacterToMe()
     {
-        character.transform.position = transform.position;
+        character.transform.position = (Vector2) transform.position;
+        charChild.transform.position = (Vector2) transform.position;
         charChild.SetActive(true);
     }
 

@@ -8,7 +8,8 @@ public class WallButton : MonoBehaviour
     public enum WallType
     {
         none,
-        wall
+        wall,
+        trap
     }
 
     public WallType wallType;
@@ -17,14 +18,12 @@ public class WallButton : MonoBehaviour
 
     public Camera camera;
 
-    // Start is called before the first frame update
     void Start()
     {
         camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         color = GetComponent<SpriteRenderer>().color;
     }
 
-    // Update is called once per frame
     void Update()
     {
         
@@ -42,6 +41,10 @@ public class WallButton : MonoBehaviour
                 break;
             case (WallType.wall):
                 GetComponent<SpriteRenderer>().color = Color.black;
+                gameObject.layer = GlobalData.wallLayer;
+                break;
+            case (WallType.trap):
+                GetComponent<SpriteRenderer>().color = Color.red;
                 gameObject.layer = GlobalData.wallLayer;
                 break;
         }
