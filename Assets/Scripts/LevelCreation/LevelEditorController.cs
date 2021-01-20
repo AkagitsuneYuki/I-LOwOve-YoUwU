@@ -166,25 +166,73 @@ public class LevelEditorController : MonoBehaviour
     //saving works
     public void SaveLevel()
     {
-        string dest = Application.persistentDataPath + "/test.uwu";
-        FileStream file;
+        GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
 
-        if (File.Exists(dest))
+        walls = new WallButton.WallType[obj.Length];
+
+        for (int i = 0; i < obj.Length; i++)
         {
-            file = File.OpenWrite(dest);
+            try
+            {
+                walls[i] = obj[i].GetComponent<WallButton>().wallType;
+            }
+            finally
+            {
+            }
         }
-        else
+
+        //this is only temporary
+        string dest = Application.persistentDataPath + "/test.uwu";
+        //FileStream file;
+
+        BinaryWriter writer = new BinaryWriter(File.Open(dest, FileMode.Create));
+
+        //this is used to check if the file type is correct
+        writer.Write("UwU");
+
+        //the save version number
+        const float version = 1.0f;
+
+        writer.Write(version);
+
+        //this is used as a decryption key to make sure the file is not corrupt
+        int key = Mathf.FloorToInt(Random.Range(int.MinValue, int.MaxValue));
+
+        writer.Write(key);
+
+        writer.Write(walls.Length); //used when getting the walls when loading
+
+        //this checksum is very basic, it just adds up the wall types as integers
+        int checksumA = 0;
+        for(int i = 0; i < walls.Length; i++)
         {
-            file = File.Create(dest);
+            writer.Write((byte)walls[i]);
+            checksumA += (byte)walls[i];
         }
-        BinaryFormatter bf = new BinaryFormatter();
-        LevelData data = new LevelData(walls);
-        bf.Serialize(file, data);
-        file.Close();
+        //this is used to see if the data is corrupt. it's the checksum xor'd with the key
+        //if we xor this with the key a second time it would return the checksum
+        writer.Write(checksumA ^ key);
+
+        //the player locations
+        //owo
+        writer.Write("OwO");
+        int owoX = Mathf.FloorToInt(spawns[0].gameObject.transform.position.x);
+        int owoY = Mathf.FloorToInt(spawns[0].gameObject.transform.position.y);
+        writer.Write(owoX);
+        writer.Write(owoY);
+        writer.Write((owoX + owoY) ^ key);
+
+        //uwu
+        writer.Write("UwU");
+        int uwuX = Mathf.FloorToInt(spawns[1].gameObject.transform.position.x);
+        int uwuY = Mathf.FloorToInt(spawns[1].gameObject.transform.position.y);
+        writer.Write(uwuX);
+        writer.Write(uwuY);
+        writer.Write((uwuX + uwuY) ^ key);
     }
     //loading is a bit fucked atm
     public void LoadLevel()
-    {
+    {/*
         string dest = Application.persistentDataPath + "/test.uwu";
         FileStream file;
 
@@ -203,6 +251,14 @@ public class LevelEditorController : MonoBehaviour
         file.Close();
 
         walls = data.buttons;
+        */
+    }
 
+    private void ReadFileData(string fileName)
+    {
+        if (File.Exists(fileName))
+        {
+            BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open));
+        }
     }
 }
