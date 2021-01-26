@@ -232,26 +232,68 @@ public class LevelEditorController : MonoBehaviour
     }
     //loading is a bit fucked atm
     public void LoadLevel()
-    {/*
+    {
         string dest = Application.persistentDataPath + "/test.uwu";
         FileStream file;
 
         if (File.Exists(dest))
         {
-            file = File.OpenRead(dest);
+            //file = File.OpenRead(dest);
+            using (BinaryReader reader = new BinaryReader(File.Open(dest, FileMode.Open)))
+            {
+                //test if we begin with the UwU string
+                if(reader.ReadString() == "UwU")
+                {
+                    //get the file version number
+                    float version = reader.ReadSingle();
+                    switch (version)
+                    {
+                        //when we don't recognize this file's version
+                        default:
+                            Debug.Log("unrecognized version");
+                            break;
+                        //v1.0
+                        case (1.0f):
+                            ReadFileVersionOne(reader);
+                            break;
+                    }
+                }
+                else
+                {
+                    Debug.Log("This file has an invalid header");
+                }
+            }
         }
         else
         {
             Debug.LogError("File not found");
             return;
         }
+    }
 
-        BinaryFormatter bf = new BinaryFormatter();
-        LevelData data = (LevelData)bf.Deserialize(file);
-        file.Close();
+    private void ReadFileVersionOne(BinaryReader reader)
+    {
+        //get the file's encryption key
+        int key = reader.ReadInt32();
+        print(key);
 
-        walls = data.buttons;
-        */
+        //get the amount of bytes to read
+        int len = reader.ReadInt32();
+
+        GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
+        if(len == obj.Length)
+        {
+            for (int i = 0; i < obj.Length; i++)
+            {
+                try
+                {
+                    obj[i].GetComponent<WallButton>().SetWallType((WallButton.WallType)reader.ReadByte());
+                }
+                finally
+                {
+                }
+            }
+        }
     }
 
     private void ReadFileData(string fileName)
