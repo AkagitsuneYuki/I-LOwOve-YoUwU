@@ -230,7 +230,7 @@ public class LevelEditorController : MonoBehaviour
         writer.Write(uwuY);
         writer.Write((uwuX + uwuY) ^ key);
     }
-    //loading is a bit fucked atm
+
     public void LoadLevel()
     {
         string dest = Application.persistentDataPath + "/test.uwu";
@@ -281,26 +281,103 @@ public class LevelEditorController : MonoBehaviour
         int len = reader.ReadInt32();
 
         GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
-        if(len == obj.Length)
+        //we get a backup of the original walls
+        walls = new WallButton.WallType[obj.Length];
+        for (int i = 0; i < obj.Length; i++)
         {
+            try
+            {
+                walls[i] = obj[i].GetComponent<WallButton>().wallType;
+            }
+            finally
+            {
+            }
+        }
+
+        if (len == obj.Length)
+        {
+            int checksumA = 0;
             for (int i = 0; i < obj.Length; i++)
             {
                 try
                 {
-                    obj[i].GetComponent<WallButton>().SetWallType((WallButton.WallType)reader.ReadByte());
+                    byte num = reader.ReadByte();
+                    obj[i].GetComponent<WallButton>().SetWallType((WallButton.WallType)num);
+                    checksumA += num;
                 }
                 finally
                 {
                 }
             }
+            int testCheck = reader.ReadInt32(); //the encrypted checksum
+            testCheck ^= key;   //decrypt it
+            if(checksumA == testCheck)
+            {
+                Debug.Log("Wall data passed the checksum");
+                string test = reader.ReadString();
+                if(test == "OwO")
+                {
+                    Vector3[] oldSpawns = {spawns[0].gameObject.transform.position, spawns[1].gameObject.transform.position};
+                    int x = reader.ReadInt32();
+                    int y = reader.ReadInt32();
+                    int num = x + y;
+                    int check = reader.ReadInt32();
+                    if((check ^ key) == num)
+                    {
+                        spawns[0].gameObject.transform.position = new Vector2(x, y);
+                        test = reader.ReadString();
+                        if(test == "UwU")
+                        {
+                            x = reader.ReadInt32();
+                            y = reader.ReadInt32();
+                            num = x + y;
+                            check = reader.ReadInt32();
+                            if ((check ^ key) == num)
+                            {
+                                spawns[1].gameObject.transform.position = new Vector2(x, y);
+                            }
+                            else
+                            {
+                                spawns[0].transform.position = oldSpawns[0];
+                                spawns[1].transform.position = oldSpawns[1];
+                                ResetToLastSave(obj);
+                            }
+                        }
+                        else
+                        {
+                            spawns[0].transform.position = oldSpawns[0];
+                            ResetToLastSave(obj);
+                        }
+                    }
+                    else
+                    {
+                        ResetToLastSave(obj);
+                    }
+                }
+                else
+                {
+                    ResetToLastSave(obj);
+                }
+            }
+            else
+            {
+                Debug.Log("The wall data failed the checksum, is the file corrupt?");
+                ResetToLastSave(obj);
+            }
         }
     }
 
-    private void ReadFileData(string fileName)
+    private void ResetToLastSave(GameObject[] obj)
     {
-        if (File.Exists(fileName))
+        for (int i = 0; i < obj.Length; i++)
         {
-            BinaryReader reader = new BinaryReader(File.Open(fileName, FileMode.Open));
+            try
+            {
+                obj[i].GetComponent<WallButton>().SetWallType(walls[i]);
+            }
+            finally
+            {
+            }
         }
     }
 }
