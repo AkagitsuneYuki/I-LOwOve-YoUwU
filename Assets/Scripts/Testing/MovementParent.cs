@@ -15,7 +15,8 @@ public class MovementParent : MonoBehaviour
     [SerializeField] private LayerMask trapLayerMask;
     [SerializeField] private LayerMask objectsMask;
 
-    private Vector3[] rayDirection = new Vector3[4];
+    //private Vector3[] rayDirection = new Vector3[4];
+    private Vector3[] rayDirection = {Vector3.up, Vector3.down, Vector3.left, Vector3.right};
 
     #endregion
 
@@ -64,10 +65,10 @@ public class MovementParent : MonoBehaviour
         Vector3 pos = new Vector3(x, y, 0);
         transform.position = pos;
 
-        rayDirection[0] = Vector3.up;
+        /*rayDirection[0] = Vector3.up;
         rayDirection[1] = Vector3.down;
         rayDirection[2] = Vector3.left;
-        rayDirection[3] = Vector3.right;
+        rayDirection[3] = Vector3.right;*/
     }
 
 
@@ -159,9 +160,11 @@ public class MovementParent : MonoBehaviour
             else
             {
                 SetAdjacentObject(i, "");
+#if UNITY_EDITOR
                 Debug.DrawLine(transform.position, transform.position + rayDirection[i] * rayLength, Color.blue);
+#endif
             }
-
+#if UNITY_EDITOR
             switch (i)
             {
                 case (0):
@@ -205,7 +208,7 @@ public class MovementParent : MonoBehaviour
                     }
                     break;
             }
-
+#endif
         }
     }
 
@@ -228,6 +231,14 @@ public class MovementParent : MonoBehaviour
                         adjObj.up = AdjacentObject.ObjectType.wall;
                         dir.up = false;
                         break;
+                    case ("OwOParent"):
+                        adjObj.up = AdjacentObject.ObjectType.player;
+                        dir.up = false;
+                        break;
+                    case ("UwUParent"):
+                        adjObj.up = AdjacentObject.ObjectType.player;
+                        dir.up = false;
+                        break;
                 }
                 break;
             case (1):
@@ -239,6 +250,14 @@ public class MovementParent : MonoBehaviour
                         break;
                     case ("Wall"):
                         adjObj.down = AdjacentObject.ObjectType.wall;
+                        dir.down = false;
+                        break;
+                    case ("OwOParent"):
+                        adjObj.down = AdjacentObject.ObjectType.player;
+                        dir.down = false;
+                        break;
+                    case ("UwUParent"):
+                        adjObj.down = AdjacentObject.ObjectType.player;
                         dir.down = false;
                         break;
                 }
@@ -254,6 +273,14 @@ public class MovementParent : MonoBehaviour
                         adjObj.left = AdjacentObject.ObjectType.wall;
                         dir.left = false;
                         break;
+                    case ("OwOParent"):
+                        adjObj.left = AdjacentObject.ObjectType.player;
+                        dir.left = false;
+                        break;
+                    case ("UwUParent"):
+                        adjObj.left = AdjacentObject.ObjectType.player;
+                        dir.left = false;
+                        break;
                 }
                 break;
             case (3):
@@ -265,6 +292,14 @@ public class MovementParent : MonoBehaviour
                         break;
                     case ("Wall"):
                         adjObj.right = AdjacentObject.ObjectType.wall;
+                        dir.right = false;
+                        break;
+                    case ("OwOParent"):
+                        adjObj.right = AdjacentObject.ObjectType.player;
+                        dir.right = false;
+                        break;
+                    case ("UwUParent"):
+                        adjObj.right = AdjacentObject.ObjectType.player;
                         dir.right = false;
                         break;
                 }

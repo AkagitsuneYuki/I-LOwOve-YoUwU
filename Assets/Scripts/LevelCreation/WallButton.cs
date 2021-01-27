@@ -24,12 +24,6 @@ public class WallButton : MonoBehaviour
         color = GetComponent<SpriteRenderer>().color;
     }
 
-    void Update()
-    {
-        
-    }
-
-
     public void SetWallType(WallType type)
     {
         wallType = type;

@@ -65,11 +65,10 @@ public class LevelEditorController : MonoBehaviour
                 RaycastHit2D hit = Physics2D.Raycast(mousePos2D, Vector2.zero);
                 if (hit.collider != null)
                 {
-                    //Debug.Log("Something was clicked!");
                     switch (hit.collider.gameObject.tag)
                     {
                         default:
-                            print("do something");
+                            //print("do something");
                             break;
                         case ("Editor Wall"):
                             WallButton wall = hit.collider.gameObject.GetComponent<WallButton>();
@@ -234,7 +233,6 @@ public class LevelEditorController : MonoBehaviour
     public void LoadLevel()
     {
         string dest = Application.persistentDataPath + "/test.uwu";
-        FileStream file;
 
         if (File.Exists(dest))
         {
@@ -250,7 +248,9 @@ public class LevelEditorController : MonoBehaviour
                     {
                         //when we don't recognize this file's version
                         default:
+#if UNITY_EDITOR
                             Debug.Log("unrecognized version");
+#endif
                             break;
                         //v1.0
                         case (1.0f):
@@ -258,15 +258,19 @@ public class LevelEditorController : MonoBehaviour
                             break;
                     }
                 }
+#if UNITY_EDITOR
                 else
                 {
                     Debug.Log("This file has an invalid header");
                 }
+#endif
             }
         }
         else
         {
+#if UNITY_EDITOR
             Debug.LogError("File not found");
+#endif
             return;
         }
     }
@@ -275,7 +279,6 @@ public class LevelEditorController : MonoBehaviour
     {
         //get the file's encryption key
         int key = reader.ReadInt32();
-        print(key);
 
         //get the amount of bytes to read
         int len = reader.ReadInt32();
@@ -313,7 +316,9 @@ public class LevelEditorController : MonoBehaviour
             testCheck ^= key;   //decrypt it
             if(checksumA == testCheck)
             {
+#if UNITY_EDITOR
                 Debug.Log("Wall data passed the checksum");
+#endif
                 string test = reader.ReadString();
                 if(test == "OwO")
                 {
@@ -361,7 +366,9 @@ public class LevelEditorController : MonoBehaviour
             }
             else
             {
+#if UNITY_EDITOR
                 Debug.Log("The wall data failed the checksum, is the file corrupt?");
+#endif
                 ResetToLastSave(obj);
             }
         }
