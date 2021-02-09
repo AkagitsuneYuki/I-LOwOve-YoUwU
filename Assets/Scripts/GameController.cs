@@ -6,11 +6,17 @@ public class GameController : MonoBehaviour
 {
     public int level;
     [SerializeField] private GameObject[] levelPrefabs;
+    [SerializeField] private bool inEditor;
+    public bool InEditor => inEditor;
 
     // Start is called before the first frame update
     void Start()
     {
-        LoadLevel();
+        if (!inEditor)
+        {
+            ResetLevel();
+            LoadLevel();
+        }
     }
 
     // Update is called once per frame
@@ -34,7 +40,7 @@ public class GameController : MonoBehaviour
         }
         finally
         {
-            Debug.Log("Mike fucked up this one. please nag him on github");
+            //Debug.Log("Mike fucked up this one. please nag him on github");
         }
 
     }
