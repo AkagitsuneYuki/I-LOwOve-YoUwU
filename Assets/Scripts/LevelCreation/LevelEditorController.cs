@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class LevelEditorController : MonoBehaviour
 {
+    public WallManager wallManager;
     public WallButton.WallType[] walls;
 
     public enum CursorMode
@@ -165,7 +166,22 @@ public class LevelEditorController : MonoBehaviour
     //saving works
     public void SaveLevel()
     {
-        GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
+        //GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
+        GameObject[] obj = new GameObject[wallManager.rows.Length + wallManager.cols.Length];
+        int temp = 0;
+        while (temp < obj.Length)
+        {
+            for(int i = 0; i < wallManager.rows.Length; i++)
+            {
+                obj[temp] = wallManager.rows[i];
+                temp++;
+            }
+            for (int i = 0; i < wallManager.cols.Length; i++)
+            {
+                obj[temp] = wallManager.cols[i];
+                temp++;
+            }
+        }
 
         walls = new WallButton.WallType[obj.Length];
 
@@ -173,6 +189,7 @@ public class LevelEditorController : MonoBehaviour
         {
             try
             {
+                Debug.Log(obj[i].name + " at " + obj[i].transform.position);
                 walls[i] = obj[i].GetComponent<WallButton>().wallType;
             }
             finally
