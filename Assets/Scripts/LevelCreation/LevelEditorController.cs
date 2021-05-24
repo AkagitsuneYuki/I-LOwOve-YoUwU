@@ -163,10 +163,22 @@ public class LevelEditorController : MonoBehaviour
         }
     }
 
+    //use this for UI elements to change the editor mode
+    public void SwitchModeButton(int newMode)
+    {
+        try
+        {
+            mode = (CursorMode)newMode;
+        }
+        catch
+        {
+            Debug.Log("Couldn't set mode to ID " + newMode);
+        }
+    }
+
     //saving works
     public void SaveLevel()
     {
-        //GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
         GameObject[] obj = new GameObject[wallManager.rows.Length + wallManager.cols.Length];
         int temp = 0;
         while (temp < obj.Length)
@@ -199,7 +211,6 @@ public class LevelEditorController : MonoBehaviour
 
         //this is only temporary
         string dest = Application.persistentDataPath + "/test.uwu";
-        //FileStream file;
 
         BinaryWriter writer = new BinaryWriter(File.Open(dest, FileMode.Create));
 
