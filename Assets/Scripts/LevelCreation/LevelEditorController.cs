@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
+using SimpleFileBrowser;
 
 public class LevelEditorController : MonoBehaviour
 {
@@ -23,6 +24,12 @@ public class LevelEditorController : MonoBehaviour
 
     void Start()
     {
+        //trying to implement a basic save/load menu
+        //this should set the filetypes to be either .uwu or .bytes
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("UwU community levels", ".uwu"), new FileBrowser.Filter("UwU internal levels", ".bytes"));
+        FileBrowser.SetDefaultFilter(".uwu");
+
+
         editMode = true;
 
         GameObject[] obj = GameObject.FindGameObjectsWithTag("Editor Wall");
@@ -176,6 +183,64 @@ public class LevelEditorController : MonoBehaviour
         }
     }
 
+    //this is now where the saving of the file happens
+    public void NewSaveFunc(string[] path)
+    {
+        foreach(string n in path)
+        {
+            Debug.Log(n);
+        }
+
+        //the file's destination
+        string dest = path[0];
+
+        BinaryWriter writer = new BinaryWriter(File.Open(dest, FileMode.Create));
+
+        //this is used to check if the file type is correct
+        writer.Write("UwU");
+
+        //the save version number
+        const float version = 1.0f;
+
+        writer.Write(version);
+
+        //this is used as a decryption key to make sure the file is not corrupt
+        int key = Mathf.FloorToInt(Random.Range(int.MinValue, int.MaxValue));
+
+        writer.Write(key);
+
+        writer.Write(walls.Length); //used when getting the walls when loading
+
+        //this checksum is very basic, it just adds up the wall types as integers
+        int checksumA = 0;
+        for (int i = 0; i < walls.Length; i++)
+        {
+            writer.Write((byte)walls[i]);
+            checksumA += (byte)walls[i];
+        }
+        //this is used to see if the data is corrupt. it's the checksum xor'd with the key
+        //if we xor this with the key a second time it would return the checksum
+        writer.Write(checksumA ^ key);
+
+        //the player locations
+        //owo
+        writer.Write("OwO");
+        int owoX = Mathf.FloorToInt(spawns[0].gameObject.transform.position.x);
+        int owoY = Mathf.FloorToInt(spawns[0].gameObject.transform.position.y);
+        writer.Write(owoX);
+        writer.Write(owoY);
+        writer.Write((owoX + owoY) ^ key);
+
+        //uwu
+        writer.Write("UwU");
+        int uwuX = Mathf.FloorToInt(spawns[1].gameObject.transform.position.x);
+        int uwuY = Mathf.FloorToInt(spawns[1].gameObject.transform.position.y);
+        writer.Write(uwuX);
+        writer.Write(uwuY);
+        writer.Write((uwuX + uwuY) ^ key);
+
+    }
+
     //saving works
     public void SaveLevel()
     {
@@ -201,7 +266,6 @@ public class LevelEditorController : MonoBehaviour
         {
             try
             {
-                Debug.Log(obj[i].name + " at " + obj[i].transform.position);
                 walls[i] = obj[i].GetComponent<WallButton>().wallType;
             }
             finally
@@ -209,66 +273,29 @@ public class LevelEditorController : MonoBehaviour
             }
         }
 
-        //this is only temporary
-        string dest = Application.persistentDataPath + "/test.uwu";
-
-        BinaryWriter writer = new BinaryWriter(File.Open(dest, FileMode.Create));
-
-        //this is used to check if the file type is correct
-        writer.Write("UwU");
-
-        //the save version number
-        const float version = 1.0f;
-
-        writer.Write(version);
-
-        //this is used as a decryption key to make sure the file is not corrupt
-        int key = Mathf.FloorToInt(Random.Range(int.MinValue, int.MaxValue));
-
-        writer.Write(key);
-
-        writer.Write(walls.Length); //used when getting the walls when loading
-
-        //this checksum is very basic, it just adds up the wall types as integers
-        int checksumA = 0;
-        for(int i = 0; i < walls.Length; i++)
+        string n = "";
+        if (FileBrowser.Result != null)
         {
-            writer.Write((byte)walls[i]);
-            checksumA += (byte)walls[i];
+            n = FileBrowser.Result.ToString();
         }
-        //this is used to see if the data is corrupt. it's the checksum xor'd with the key
-        //if we xor this with the key a second time it would return the checksum
-        writer.Write(checksumA ^ key);
+        else
+        {
+            n = "C:\\";
+        }
 
-        //the player locations
-        //owo
-        writer.Write("OwO");
-        int owoX = Mathf.FloorToInt(spawns[0].gameObject.transform.position.x);
-        int owoY = Mathf.FloorToInt(spawns[0].gameObject.transform.position.y);
-        writer.Write(owoX);
-        writer.Write(owoY);
-        writer.Write((owoX + owoY) ^ key);
-
-        //uwu
-        writer.Write("UwU");
-        int uwuX = Mathf.FloorToInt(spawns[1].gameObject.transform.position.x);
-        int uwuY = Mathf.FloorToInt(spawns[1].gameObject.transform.position.y);
-        writer.Write(uwuX);
-        writer.Write(uwuY);
-        writer.Write((uwuX + uwuY) ^ key);
+        //using the new filebrowser to save and load files
+        FileBrowser.ShowSaveDialog((path) => { NewSaveFunc(path); }, null, FileBrowser.PickMode.Files, false, n, "level.uwu", "Save Level", "Save");
     }
 
-    public void LoadLevel()
+    public void NewLoadLevel(string[] path)
     {
-        string dest = Application.persistentDataPath + "/test.uwu";
-
-        if (File.Exists(dest))
+        if (File.Exists(path[0]))
         {
             //file = File.OpenRead(dest);
-            using (BinaryReader reader = new BinaryReader(File.Open(dest, FileMode.Open)))
+            using (BinaryReader reader = new BinaryReader(File.Open(path[0], FileMode.Open)))
             {
                 //test if we begin with the UwU string
-                if(reader.ReadString() == "UwU")
+                if (reader.ReadString() == "UwU")
                 {
                     //get the file version number
                     float version = reader.ReadSingle();
@@ -294,13 +321,27 @@ public class LevelEditorController : MonoBehaviour
 #endif
             }
         }
+#if UNITY_EDITOR
         else
         {
-#if UNITY_EDITOR
             Debug.LogError("File not found");
-#endif
             return;
         }
+#endif
+    }
+
+    public void LoadLevel()
+    {
+        string n = "";
+        if(FileBrowser.Result != null)
+        {
+            n = FileBrowser.Result.ToString();
+        }
+        else
+        {
+            n = "C:\\";
+        }
+        FileBrowser.ShowLoadDialog((path) => { NewLoadLevel(path); }, null, FileBrowser.PickMode.Files, false, n, "level.uwu", "Load Level", "Load");
     }
 
     private void ReadFileVersionOne(BinaryReader reader)
